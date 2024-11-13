@@ -1,0 +1,15 @@
+{
+  "name": "piral-cloud-ws-server-demo",
+  "version": "1.0.0",
+  "description": "Cool WebSocket demo showing how to create an extensible reactive server.",
+  "module": "index.mjs",
+  "scripts": {
+    "start": "node --experimental-vm-modules index.mjs"
+  },
+  "keywords": [],
+  "author": "smapiot",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
