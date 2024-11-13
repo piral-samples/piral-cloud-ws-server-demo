@@ -41,7 +41,12 @@ async function linkModule(url, context) {
 }
 
 async function loadModule(url) {
-  const context = createContext();
+  const context = createContext({
+    // potentially add more runtime built-in / shared functionality
+    console,
+    setTimeout,
+    setInterval,
+  });
 
   try {
     const res = await linkModule(url, context);
@@ -72,7 +77,7 @@ async function installPlugin(item) {
       disposers.splice(disposers.indexOf(ref), 1);
     }
   }; 
-  const item = {
+  const plugin = {
     id: makeId(item),
     name,
     api: {
@@ -86,13 +91,13 @@ async function installPlugin(item) {
       },
     },
     remove() {
-      typeof teardown === 'function' && teardown(item.api);
-      current.splice(current.indexOf(item), 1);
+      typeof teardown === 'function' && teardown(plugin.api);
+      current.splice(current.indexOf(plugin), 1);
       disposers.forEach(({ dispose }) => dispose());
     },
   };
-  typeof setup === "function" && setup(item.api);
-  current.push(item);
+  typeof setup === "function" && setup(plugin.api);
+  current.push(plugin);
 }
 
 function watchPlugins() {
@@ -107,15 +112,15 @@ function watchPlugins() {
     if (changeEventTypes.includes(msg.type)) {
       const res = await fetch(feed);
       const { items } = await res.json();
-      const removeItems = current.filter(
+      const removePlugins = current.filter(
         ({ id }) => !items.some((n) => makeId(n) === id)
       );
       const addItems = items.filter(
         (item) => !current.some(({ id }) => id === makeId(item))
       );
 
-      for (const item of removeItems) {
-        item.remove();
+      for (const plugin of removePlugins) {
+        plugin.remove();
       }
 
       for (const item of addItems) {

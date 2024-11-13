@@ -18,7 +18,9 @@ function logError(err) {
 wss.on("connection", (ws) => {
   const connectionId = randomUUID();
   const sendMessage = (message) => {
-    ws.send(JSON.stringify(message));
+    ws.send(JSON.stringify(message), (err) => {
+      err && logError(`Could not send message: ${err}.`);
+    });
   };
   const disposeAll = () => {
     off("broadcast", sendMessage);
@@ -32,9 +34,10 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    if (typeof msg.type === "string") {
-      const { data = {}, correlationId = randomUUID() } = msg;
-      emit(`command:${msg.type}`, {
+    const { type, correlationId = randomUUID(), ...data } = msg;
+
+    if (typeof type === "string") {
+      emit(`command:${type}`, {
         connectionId,
         correlationId,
         data,
